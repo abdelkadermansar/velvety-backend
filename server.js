@@ -75,11 +75,7 @@ app.use((err, req, res, next) => {
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     
     // Create default admin user if not exists
@@ -109,7 +105,6 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-    console.log(`📝 API URL: http://localhost:${PORT}/api`);
   });
 
   // Handle unhandled promise rejections
@@ -118,14 +113,6 @@ connectDB().then(() => {
     console.log(err.name, err.message);
     server.close(() => {
       process.exit(1);
-    });
-  });
-
-  // Handle SIGTERM
-  process.on('SIGTERM', () => {
-    console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-    server.close(() => {
-      console.log('💥 Process terminated!');
     });
   });
 });
