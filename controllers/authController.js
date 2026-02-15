@@ -255,7 +255,7 @@ module.exports = {
   loginUser,
   getProfile,
   updateProfile,
-  forgotPassword,    
-  resetPassword,     
-  verifyEmail        
+  forgotPassword,
+  resetPassword,
+  verifyEmail
 };
