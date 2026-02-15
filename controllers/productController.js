@@ -35,6 +35,7 @@ const getProducts = async (req, res) => {
       .sort(req.query.sort || '-createdAt');
 
     res.json({
+      success: true,
       products,
       page,
       pages: Math.ceil(count / pageSize),
@@ -42,7 +43,7 @@ const getProducts = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -54,13 +55,13 @@ const getProductById = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      res.json(product);
+      res.json({ success: true, product });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ success: false, message: 'Product not found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -72,13 +73,70 @@ const getProductBySlug = async (req, res) => {
     const product = await Product.findOne({ slug: req.params.slug });
 
     if (product) {
-      res.json(product);
+      res.json({ success: true, product });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ success: false, message: 'Product not found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Get products by category
+// @route   GET /api/products/category/:category
+// @access  Public
+const getProductsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    
+    const products = await Product.find({ category });
+    
+    res.json({ 
+      success: true, 
+      products,
+      count: products.length
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Get top rated products
+// @route   GET /api/products/top
+// @access  Public
+const getTopProducts = async (req, res) => {
+  try {
+    const products = await Product.find({})
+      .sort({ rating: -1 })
+      .limit(5);
+    
+    res.json({ 
+      success: true, 
+      products 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Get featured products
+// @route   GET /api/products/featured
+// @access  Public
+const getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isFeatured: true })
+      .limit(8);
+    
+    res.json({ 
+      success: true, 
+      products 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -101,10 +159,10 @@ const createProduct = async (req, res) => {
     });
 
     const createdProduct = await product.save();
-    res.status(201).json(createdProduct);
+    res.status(201).json({ success: true, product: createdProduct });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -130,13 +188,13 @@ const updateProduct = async (req, res) => {
       product.isFeatured = req.body.isFeatured !== undefined ? req.body.isFeatured : product.isFeatured;
 
       const updatedProduct = await product.save();
-      res.json(updatedProduct);
+      res.json({ success: true, product: updatedProduct });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ success: false, message: 'Product not found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -149,13 +207,13 @@ const deleteProduct = async (req, res) => {
 
     if (product) {
       await product.deleteOne();
-      res.json({ message: 'Product removed' });
+      res.json({ success: true, message: 'Product removed' });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ success: false, message: 'Product not found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -174,7 +232,7 @@ const createProductReview = async (req, res) => {
       });
 
       if (alreadyReviewed) {
-        return res.status(400).json({ message: 'Product already reviewed' });
+        return res.status(400).json({ success: false, message: 'Product already reviewed' });
       }
 
       const review = await Review.create({
@@ -192,13 +250,13 @@ const createProductReview = async (req, res) => {
 
       await product.save();
 
-      res.status(201).json({ message: 'Review added' });
+      res.status(201).json({ success: true, message: 'Review added' });
     } else {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ success: false, message: 'Product not found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -206,6 +264,9 @@ module.exports = {
   getProducts,
   getProductById,
   getProductBySlug,
+  getProductsByCategory,
+  getTopProducts,
+  getFeaturedProducts,
   createProduct,
   updateProduct,
   deleteProduct,
